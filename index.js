@@ -7,27 +7,34 @@ const escapeHtml = require('escape-html');
 exports.actuator = (req, res) => {
   var http = require("http");
 
-  var rateLimit = "1/s";
+  var numRequests = 3;
+  var rateLimit = "10/s";
   var options = {
     "method": "GET",
     "hostname": "35.225.71.61",
     "path": "/users?rateLimit=" + rateLimit
   };
 
-  var actReq = http.request(options, function (actRes) {
-    var responseString = "";
+  var responses = [];
+  for (var i = 0; i < numRequests; i++) {
+    var actReq = http.request(options, function (actRes) {
+      var responseString = "";
 
-    actRes.on("data", function (data) {
-      responseString += data;
+      actRes.on("data", function (data) {
+        responseString += data;
+      });
+
+      actRes.on("end", function () {
+        responses.push(responseString);
+        if (responses.length == numRequests) {
+          res.send(responses.join("SEPARATOR"));
+        }
+      });
     });
 
-    actRes.on("end", function () {
-      res.send(responseString);
-    });
-  });
-
-  actReq.write("");
-  actReq.end();
+    actReq.write("");
+    actReq.end();
+  }
 }
 
 exports.test = (req, res) => {
