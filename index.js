@@ -4,7 +4,7 @@ const Buffer = require('safe-buffer').Buffer;
 const escapeHtml = require('escape-html');
 
 /* MY STUFF */
-exports.reqactuator = (req, res) => {
+exports.actuator = (req, res) => {
   var http = require("http");
 
   var rateLimit = "1/s";
@@ -28,4 +28,20 @@ exports.reqactuator = (req, res) => {
 
   actReq.write("");
   actReq.end();
+}
+
+exports.test = (req, res) => {
+  res.send(
+    JSON.stringify(req, function(key, value) {
+      if (["owner", "socket", "outgoing", "_httpMessage", "parser", "req"].includes(key)) {
+        return null;
+      } else {
+        return value;
+      }
+    })
+  );
+}
+
+exports.test2 = (req, res) => {
+
 }
