@@ -44,6 +44,41 @@ exports.actuator = (req, res) => {
   }
 }
 
+exports.actuator2 = (req, res) => {
+  var http = require("http");
+
+  let rateLimit = req.query.rateLimit;
+  let interval = req.query.interval;
+  let numReqs = req.query.numReqs;
+
+  if (!rateLimit || !interval || !numReqs) {
+    res.status(400).send("bad request");
+  }
+
+  var options = {
+    "method": "GET",
+    "hostname": "35.225.71.61",
+    "path": "/users?rateLimit=" + rateLimit
+  };
+
+  var intervalStart = Date.now();
+  var intervalEnd = Date.now();
+  for (var i = 0; i < numReqs; i++) {
+    while (intervalEnd - intervalStart < interval) {
+      intervalEnd = Date.now();
+    }
+
+    var actReq = http.request(options, function (actRes) {
+      // Do nothing
+    });
+
+    actReq.end(); // send request
+
+    intervalStart = intervalEnd;
+  }
+  res.send("Done");
+}
+
 exports.test = (req, res) => {
   res.send(
     JSON.stringify(req, function(key, value) {
