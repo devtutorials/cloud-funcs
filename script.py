@@ -4,7 +4,7 @@ import background
 # Note: we're depending on language overhead to prevent us from exceeding rate limit
 
 POLL_EP = "http://35.225.71.61/actuator/metrics/req.total"
-CLOUD_EP = "http://localhost:8010/daring-runway-221704/us-central1/actuator2?rateLimit={0}/s&interval={1}&numReqs={2}"
+CLOUD_EP = "http://localhost:8010/daring-runway-221704/us-central1/actuator3?rateLimit={0}/s&interval={1}&numReqs={2}"
 
 MIN_INTERVAL = 100 # in milliseconds; in reality ~20 or less but to be safe
 MAX_RATE = 1000 / MIN_INTERVAL
