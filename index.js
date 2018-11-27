@@ -8,19 +8,18 @@ exports.actuator = (req, res) => {
 
   var http = require("http");
 
-  var numReqs = 10;
-  var rateLimit = "1/s";
-  // var hostname = ;
-
+  var numRequests = 20;
+  var rateLimit = "10/s";
   var options = {
     "method": "GET",
     "hostname": "35.225.71.61",
     "path": "/users?rateLimit=" + rateLimit
   };
-  var actReq;
-  var responses = new Array();
-  for (var i = 0; i < numReqs; i++) {
-    actReq = http.request(options, function (actRes) {
+
+  var responses = [];
+  var start = Date.now();
+  for (var i = 0; i < numRequests; i++) {
+    var actReq = http.request(options, function (actRes) {
       var responseString = "";
 
       actRes.on("data", function (data) {
@@ -29,16 +28,20 @@ exports.actuator = (req, res) => {
 
       actRes.on("end", function () {
         responses.push(responseString);
-        if (responses.length == numReqs) {
-          res.send(responses.join("\n\n") + "LENGTH: " + responses.length.toString());
+        if (responses.length == numRequests) {
+          var end = Date.now();
+          var displayVal = "";
+          for (var j = 0; j < responses.length; j++) {
+            displayVal += `${j+1}. ${responses[j]} <br>`;
+          }
+          displayVal += `Total time: ${end - start} ms`;
+          res.send(displayVal);
         }
       });
     });
-    actReq.write("");
+
     actReq.end();
   }
-
-  // res.send("done");
 }
 
 exports.test = (req, res) => {
