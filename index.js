@@ -7,7 +7,7 @@ const escapeHtml = require('escape-html');
 exports.actuator = (req, res) => {
   var http = require("http");
 
-  var numRequests = 3;
+  var numRequests = 20;
   var rateLimit = "10/s";
   var options = {
     "method": "GET",
@@ -16,6 +16,7 @@ exports.actuator = (req, res) => {
   };
 
   var responses = [];
+  var start = Date.now();
   for (var i = 0; i < numRequests; i++) {
     var actReq = http.request(options, function (actRes) {
       var responseString = "";
@@ -27,12 +28,17 @@ exports.actuator = (req, res) => {
       actRes.on("end", function () {
         responses.push(responseString);
         if (responses.length == numRequests) {
-          res.send(responses.join("SEPARATOR"));
+          var end = Date.now();
+          var displayVal = "";
+          for (var j = 0; j < responses.length; j++) {
+            displayVal += `${j+1}. ${responses[j]} <br>`;
+          }
+          displayVal += `Total time: ${end - start} ms`;
+          res.send(displayVal);
         }
       });
     });
 
-    actReq.write("");
     actReq.end();
   }
 }
