@@ -63,20 +63,38 @@ exports.actuator2 = (req, res) => {
 
   var intervalStart = Date.now();
   var intervalEnd = Date.now();
+  let start = Date.now();
+  var responses = [];
   for (var i = 0; i < numReqs; i++) {
     while (intervalEnd - intervalStart < interval) {
       intervalEnd = Date.now();
     }
 
     var actReq = http.request(options, function (actRes) {
-      // Do nothing
-    });
+      var responseString = "";
 
-    actReq.end(); // send request
+      actRes.on("data", function (data) {
+        responseString += `${Date.now() - start} ms`;
+      });
+
+      actRes.on("end", function () {
+        responses.push(responseString);
+        if (responses.length == numReqs) {
+          var end = Date.now();
+          var displayVal = "";
+          for (var j = 0; j < responses.length; j++) {
+            displayVal += `${j+1}. ${responses[j]} <br>`;
+          }
+          displayVal += `Total time: ${end - start} ms`;
+          res.send(displayVal);
+        }
+      });
+    });
+    actReq.write("");
+    actReq.end();
 
     intervalStart = intervalEnd;
   }
-  res.send("Done");
 }
 
 exports.test = (req, res) => {
