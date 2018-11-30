@@ -41,9 +41,12 @@ def start_requests(rate_limit, total_reqs):
 def poll(pollRate=1):
     def get_total():
         return requests.get(POLL_EP).json()["measurements"][0]["value"]
+    elapsed = 0.1
     while True:
+        start_time = time.time()
         old_reqs = get_total()
-        time.sleep(pollRate)
+        elapsed = time.time() - start_time
+        time.sleep(pollRate - elapsed)
         new_reqs = get_total()
         print("{0} req/s".format((new_reqs - old_reqs) / pollRate))
 
