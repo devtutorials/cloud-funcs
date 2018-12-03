@@ -8,6 +8,7 @@ CLOUD_EP = "http://localhost:8010/daring-runway-221704/us-central1/actuator3?rat
 
 MIN_INTERVAL = 100 # in milliseconds; in reality ~20 or less but to be safe
 MAX_RATE = 1000 / MIN_INTERVAL
+BUFFER = 1
 
 
 def start_requests(rate_limit, total_reqs):
@@ -15,53 +16,26 @@ def start_requests(rate_limit, total_reqs):
     num_reqs = total_reqs // num_cloudfuncs # not exact because of floor divide
     avg_rate = rate_limit / num_cloudfuncs # req/s
     interval = 1000 / avg_rate # ms/req
-    req_ep = CLOUD_EP.format(rate_limit, interval, num_reqs)
+    req_ep = CLOUD_EP.format(rate_limit - BUFFER, interval, num_reqs)
     print("Executing {0} Cloud Functions each running {1} requests with interval {2}ms".format(num_cloudfuncs, num_reqs, interval))
 
     @background.task
     def single_request():
-        print(requests.get(req_ep))
+        print("Thread completed with {0}".format(requests.get(req_ep)))
 
     for _ in range(num_cloudfuncs):
         single_request()
 
-    # async_list = []
-    # def callback(response):
-    #     print("Done with request: ", end="")
-    #     print(response)
-    #
-    # for _ in range(num_cloudfuncs):
-    #     action_item = grequests.get(req_ep, hooks={"response": callback})
-    #     async_list.append(action_item)
-    #
-    # print("mapping async requests")
-    # grequests.map(async_list)
-    # print("done mapping")
-
-def poll(pollRate=1):
-    def get_total():
-        return requests.get(POLL_EP).json()["measurements"][0]["value"]
-    elapsed = 0.1
-    while True:
-        start_time = time.time()
-        old_reqs = get_total()
-        elapsed = time.time() - start_time
-        time.sleep(pollRate - elapsed)
-        new_reqs = get_total()
-        print("{0} req/s".format((new_reqs - old_reqs) / pollRate))
-
-def test_poll(pollRate=1):
-    def get_total():
-        return requests.get(POLL_EP).json()["measurements"][0]["value"]
-    while True:
-        print(get_total())
-        time.sleep(pollRate)
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    assert len(args) == 2
-    rate_limit = int(args[0]) # for now implicitly this number per second
-    total_reqs = int(args[1])
+    assert len(args) == 0 or len(args) == 2
+    if len(args) == 0:
+        rate_limit = int(input("Specify rate (requests/second): "))
+        total_reqs = int(input("Specify total number of requests: "))
+    else:
+        rate_limit = int(args[0]) # for now implicitly this number per second
+        total_reqs = int(args[1])
 
     start_requests(rate_limit, total_reqs)
     # try:
